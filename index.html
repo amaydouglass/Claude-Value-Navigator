@@ -10,7 +10,7 @@
 :root {
   --bg:#0f0f0e; --surface:#181817; --surface2:#1e1e1d; --surface3:#252524;
   --border:#2a2a28; --border-light:#343432;
-  --text:#e8e4dc; --text-muted:#7a7870; --text-dim:#4a4a47;
+  --text:#e8e4dc; --text-muted:#a8a49c; --text-dim:#6e6e6b;
   --accent:#e8683a; --accent-dim:rgba(232,104,58,0.12); --accent-border:rgba(232,104,58,0.28);
   --green:#5a9e6f; --green-dim:rgba(90,158,111,0.12); --green-border:rgba(90,158,111,0.3);
   --gold:#c4962a; --gold-dim:rgba(196,150,42,0.12); --gold-border:rgba(196,150,42,0.3);
@@ -366,7 +366,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 <body>
 
 <!-- API KEY GATE -->
-<div id="api-gate" style="position:fixed;inset:0;background:#0f0f0e;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;">
+<div id="api-gate" style="display:none!important;" style="position:fixed;inset:0;background:#0f0f0e;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;">
   <div style="width:100%;max-width:420px;">
     <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">Anthropic CS</div>
     <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--text);margin-bottom:4px;">Claude <em style="font-style:italic;color:var(--accent);">Value</em><br>Navigator</div>
@@ -539,7 +539,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
     </div>
     <div class="btn-row" style="margin-top:24px;">
       <button class="btn-primary" onclick="goToInterview()">Run Risk Interview →</button>
-      <button class="btn-secondary" style="background:rgba(90,158,111,0.15);border-color:rgba(90,158,111,0.4);color:#5a9e6f;" onclick="exportQBRDeck()">⬇ Export QBR Deck</button>
+      <button class="btn-secondary" style="background:rgba(90,158,111,0.15);border-color:rgba(90,158,111,0.4);color:#5a9e6f;" onclick="exportPPTX()">⬇ Export QBR Deck</button>
       <button class="btn-secondary" onclick="saveProfile()">Save Account</button>
       <button class="btn-secondary" onclick="copySurveyLink()">📋 Copy Survey Link</button>
       <button class="btn-secondary" onclick="resetToForm()">← New Profile</button>
@@ -854,7 +854,7 @@ const state = {
   resultSignals: new Set()
 };
 // ── API KEY ──
-let apiKey = '';
+let apiKey = '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';
 function unlockApp(){
   const key = document.getElementById('api-key-input').value.trim();
   if(!key.startsWith('sk-ant-')){
@@ -1051,15 +1051,17 @@ async function exportInterviewPPTX(){
   await triggerPPTXDownload(payload);
 }
 async function triggerPPTXDownload(payload){
-  // Use the Anthropic API to generate the PPTX data via the Node.js script logic,
-  // then encode it and offer as download. Since we can't run Node in browser,
-  // we call the API to get structured data and build a downloadable HTML report as fallback,
-  // with the full PPTX generation happening server-side when integrated.
-  // For this demo, we produce a rich HTML export that opens in a new window.
-  const win = window.open('', '_blank');
-  win.document.write(buildHTMLDeckExport(payload));
-  win.document.close();
-  document.getElementById('pptx-status').textContent='QBR deck opened in new tab. Print to PDF for sharing.';
+  const html = buildHTMLDeckExport(payload);
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (payload.company||'QBR').replace(/[^a-z0-9]/gi,'-') + '-QBR-Deck.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  document.getElementById('pptx-status').textContent='QBR deck downloaded. Open the file and print to PDF for sharing.';
 }
 function buildHTMLDeckExport(p){
   const bm = {
