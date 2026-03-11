@@ -855,6 +855,13 @@ const state = {
 };
 // ── API KEY ──
 let apiKey = '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';
+// Auto-hide gate if key is hardcoded
+document.addEventListener('DOMContentLoaded', function(){
+  if(apiKey && apiKey.startsWith('sk-ant-')){
+    const gate = document.getElementById('api-gate');
+    if(gate) gate.style.display='none';
+  }
+});
 function unlockApp(){
   const key = document.getElementById('api-key-input').value.trim();
   if(!key.startsWith('sk-ant-')){
